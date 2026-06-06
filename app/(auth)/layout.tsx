@@ -12,10 +12,10 @@ export default function Layout({ children }: Readonly<IProps>) {
                 <h1 className="text-xl text-white font-semibold">Marketplace</h1>
             </header>
             <main className="flex items-center justify-center flex-1">
-            <Card>
-                {children}
-             </Card>
-         </main>
+                <Card>
+                    {children}
+                </Card>
+            </main>
         </>
     )
 }
