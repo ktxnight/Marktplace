@@ -2,13 +2,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
-import { custumerRegisterStep02, custumerRegisterStep03, custumerRegisterStep04, CustumerRegistrationStep01Error, CustumerRegistrationStep02Error, CustumerRegistrationStep03Error, CustumerRegistrationStep04Error, validateEmail } from "@/app/actions/register_client";
+import { custumerRegister, custumerRegisterStep02, custumerRegisterStep03, custumerRegisterStep04, CustumerRegistrationStep01Error, CustumerRegistrationStep02Error, CustumerRegistrationStep03Error, CustumerRegistrationStep04Error, validateEmail } from "@/app/actions/register_client";
 import { Button } from "@/app/components/button";
 import { Input } from "@/app/components/input";
 import { Select } from "@/app/components/select";
 import { ECustomerRegistrationSteps, TCustomerRegister } from "@/app/interfaces/client";
 import { STATES } from "@/app/mocks/states";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { isFloat64Array } from "node:util/types";
 import { ChangeEvent, ChangeEventHandler, Dispatch, SetStateAction, useActionState, useEffect, useRef, useState } from "react"
 import toast from "react-hot-toast";
 
@@ -283,58 +285,73 @@ function Step04({ setStep, setClient, client }: IProps) {
 }
 
 function Overview({ setStep, client }: Omit<IProps, "setClient">) {
+    const router = useRouter()
+    const [state, formAction, isPending] = useActionState(custumerRegister, {success: false })
     const address = client.address ? client.address[0] : undefined
-    return(
-        <div className="grid grid-cols-4">
-            <div className="col-span-4">
-            <Input label="Nome Completo"value={client.name} disabled onChange={() => { }}/>
-            </div>
-            <div className="col-span-2">
-            <Input label="E-mail"value={client.email} disabled onChange={() => { }}/>
-            </div>
-            <div className="col-span-2">
-            <Input label="CPF" value={client.document} disabled onChange={() => { }}/>
-            </div>
-            <div className="col-span-2">
-             <Input label="Data de Nascimento" type="date" value={client.dateOfBirth?.toDateString()} disabled onChange={() => { }}/>
-            </div>
-            <div className="col-span-2">
-            <Input label="Telefone" value={client.phone} disabled onChange={() => { }}/>
-            </div>
-            <Input label="CEP"value={address?.zipcode} disabled onChange={() => { }}/>
-            <div className="col-span-2">
-            <Input label="Endereço"value={address?.publicPlace} disabled onChange={() => { }}/>
-            </div>
-            <Input label="Numero"value={address?.number} disabled onChange={() => { }}/>
-            <div className="col-span-2">
-            <Input label="Complemento"value={address?.complement} disabled onChange={() => { }}/>
-            </div>
-            <div className="col-span-2">
-            <Input label="Bairro"value={address?.neighborhood} disabled onChange={() => { }}/>
-            </div>
-            <div className="col-span-2">
-            <Input label="Cidade"value={address?.city} disabled onChange={() => { }}/>
-            </div>
-            <Input label="UF"value={address?.state} disabled onChange={() => { }}/>
-            <div className="col-span-2">
 
-            
-            <Input 
+    useEffect(() => {
+        if (!state.success && state.errors) {
+            const errors = Object.values(state.errors)
+            const message = errors.flat()
+            toast.error(message ? message[0] : state.message || "Ocorreu um erro desconhecido")
+        } else if (state.success) {
+            toast.success(state.message || "Cadastro realizado com Sucesso")
+            setTimeout(() => router.push("/login"), 2000)
+        }
+    }, [state])
+
+    return(
+        <form className="grid grid-cols-4">
+            <div className="col-span-4">
+            <Input  id="name" name="name" label="Nome Completo"value={client.name}readOnly onChange={() => { }}/>
+            </div>
+            <div   className="col-span-2">
+            <Input id="email" name="email" label="E-mail"value={client.email}readOnly onChange={() => { }}/>
+            </div>
+            <div  className="col-span-2">
+            <Input  id="document" name="document" label="CPF" value={client.document}readOnly onChange={() => { }}/>
+            </div>
+            <div className="col-span-2">
+             <Input id="dateOfBirth" name="dateOfBirth" label="Data de Nascimento" type="date" value={client.dateOfBirth?.toDateString()}readOnly onChange={() => { }}/>
+            </div>
+            <div className="col-span-2">
+            <Input id="phone" name="phone" label="Telefone" value={client.phone}readOnly onChange={() => { }}/>
+            </div>
+            <Input id="zipcode" name="zipcode" label="CEP"value={address?.zipcode}readOnly onChange={() => { }}/>
+            <div className="col-span-2">
+            <Input id="publicPlace" name="publicPlace" label="Endereço"value={address?.publicPlace}readOnly onChange={() => { }}/>
+            </div>
+            <Input id="number" name="number"label="Numero"value={address?.number}readOnly onChange={() => { }}/>
+            <div className="col-span-2">
+            <Input id="Complemento" name="Complemento"label="Complemento"value={address?.complement}readOnly onChange={() => { }}/>
+            </div>
+            <div className="col-span-2">
+            <Input id="neighborhood" name="neighborhood" label="Bairro"value={address?.neighborhood} readOnly onChange={() => { }}/>
+            </div>
+            <div className="col-span-2">
+            <Input id="city" name="city" label="Cidade"value={address?.city} readOnly onChange={() => { }}/>
+            </div>
+            <Input id="state" name="state" label="UF"value={address?.state} readOnly onChange={() => { }}/>
+            <div className="col-span-2">
+            <Input  id="password" name="password"
+                type="password"
                 label="Senha"
-                value={
-                    Array.from({ length: client.password?.length || 8 })
-                    .map(() => "*")
-                    .join("")
-                }
+                value={client.password}
                 disabled
                 onChange={() => { }}
             />
+            <Input  id="confPassword" name="confPassword"
+                type="hidden"
+                value={client.password}
+                readOnly
+                onChange={() => { }}
+                />
             </div>
                 <div className="col-span-4 flex flex-row gap-2 items-center">
-                    <Button onClick={() => setStep(ECustomerRegistrationSteps.STEP04)}>Voltar</Button>
-                    <Button>Cadastrar</Button>
+                    <Button type="button"onClick={() => setStep(ECustomerRegistrationSteps.STEP04)}>Voltar</Button>
+                    <Button type="submit">Cadastrar</Button>
                 </div>
-        </div>
+        </form>
     )
 }
  

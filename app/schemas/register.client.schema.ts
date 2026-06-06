@@ -27,3 +27,10 @@ export const Step04Schema = z.object({
     password: z.string(),
     confPassword: z.string()
 })
+
+export const CustumerRegistrationSchema = Step01Schema.extend({
+    ...Step01Schema.shape,
+    ...Step02Schema.shape,
+    ...Step03Schema.shape,
+    ...Step04Schema.shape,
+})
