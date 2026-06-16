@@ -19,7 +19,7 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
                 categoryID: 1,
                 description: "desktops De Boa Qualidade",
                 sellerID: 1,
-                amount: 10,
+                amount: 0,
                 price: 25,
             },
             {
@@ -28,7 +28,7 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
                 categoryID: 1,
                 description: "Mouse de Qualidade",
                 sellerID: 1,
-                amount: 20,
+                amount: 0,
                 price: 50,
             }
         ], total: 0
