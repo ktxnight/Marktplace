@@ -6,14 +6,27 @@ import { CATEGORIES } from "@/app/mocks/categories";
 import Link from "next/link";
 import { IoCart, IoClose, IoTrash } from "react-icons/io5";
 import { Button } from "@/app/components/button";
-import { MdFavorite } from "react-icons/md";
+import { MdFavorite, MdHideImage } from "react-icons/md";
 import { HiMenu } from "react-icons/hi";
 import { FaAngleRight, FaMinus, FaPlus, FaUserCircle } from "react-icons/fa";
 import { useCart } from "@/app/contexts/cart.context";
 
-function HeaderButton({ children, onClick }: { children: ReactNode, onClick?: () => void }) {
+function HeaderButton({ children, onClick, notification }: {
+    children: ReactNode,
+    onClick?: () => void,
+    notification?: number
+}) {
     return (
-        <Button onClick={onClick} className="h-6 w-6 hover:bg-[#03738C22] hover:text-[#00BC99] cursor-pointer rounded-md flex items-center justify-center">
+        <Button onClick={onClick} className="relative h-6 w-6 hover:bg-[#03738C22] hover:text-[#00BC99] cursor-pointer rounded-md flex items-center justify-center">
+            {
+                notification &&
+                notification > 0 &&
+                (
+                    <div className="absolute h-3 w-3 flex items-center justify-center -top-px -right-px bg-[#00BC99] text-[6px] text-white rounded-full p-px">
+                        {notification}
+                    </div>
+                )
+            }
             {children}
         </Button>
     )
@@ -42,10 +55,61 @@ function SidebarList({ keyItem, label, data }: { keyItem: string, label: string,
     )
 }
 
+function CartItem({ data, add, remove }: {
+    data: IProductCart,
+    remove: (product: IProductCart) => void,
+    add: (product: IProductCart) => void
+}) {
+
+    return (
+        <div className="flex flex row gap-1.5">
+            <div className="text-slate-300 h-8 w-8 rounded-md overflow-hidden flex items-center justify-center">
+                <MdHideImage size={25} />
+            </div>
+            <div className="flex-1">
+                <div className="flex flex-row items-center justify-between">
+                    <div>
+                        <div className="text-xs font-bold">{data.name}</div>
+                        <div className="text-[8px] text-slate-500">
+                            {
+                                CATEGORIES
+                                    .find(ct => ct.id === data.categoryID)?.name || "Não identificada"
+                            }
+                        </div>
+                    </div>
+                    <button onClick={() => remove(data)} className="bg-red-200 text-red-600 h-5 w-5 rounded-md flex items-center justify-center">
+                        <IoTrash size={12} />
+                    </button>
+                </div>
+                <div className="flex flex-row items-center justify-between">
+                    <div>
+                        <div className="flex flex-row items-center">
+                            <button onClick={() => remove({ ...data, amount: 1 })} className="flex items-center justify-center w-4 h-4 rounded-r-md bg-[#012E40] text-white cursor-pointer hover:bg-[#03738C22] hover-text-[#00BC99]">
+                                <FaMinus size={6} />
+                            </button>
+                            <div className="border-y border-slate-500 text-slate-600 w-6 h-4 flex items-center justify-center text-[8px]">{data.amount}</div>
+                            <button onClick={() => add({ ...data, amount: 1 })} className="flex items-center justify-center w-4 h-4 rounded-r-md bg-[#012E40] text-white cursor-pointer hover:bg-[#03738C22] hover:text-[#00BC99]">
+                                <FaPlus size={6} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="text-[12px] flex flex-row gap-px font-bold text-[#012E40]">
+                        <div className="text-[8px]">R$</div>
+                        {(data.price * data.amount).toLocaleString("pt-br", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export function Header() {
     const [show, setShow] = useState<boolean>(false)
     const [showCart, setShowCart] = useState<boolean>(true);
-    const { cart } = useCart();
+    const { cart, add, remove } = useCart();
     return (
         <>
             <header className="w-full">
@@ -62,7 +126,7 @@ export function Header() {
                             <MdFavorite />
                         </HeaderButton>
                         {/* CARRINHO */}
-                        <HeaderButton onClick={() => setShowCart(true)}>
+                        <HeaderButton onClick={() => setShowCart(true)} notification={cart.products.reduce((prev, curr) => prev + curr.amount, 0)}>
                             <IoCart />
                         </HeaderButton>
                         {/* LOGIN */}
@@ -138,55 +202,30 @@ export function Header() {
                     </button>)}
 
                     <div className="h-[calc(100%-60px)] w-full py-2 overflow-y-scroll flex flex-col gap-2">
-                        <ul>
-                            <label>Carrinho</label>
+                        <ul className="p-2 pt-6 flex flex-col gap-2" >
+                            <label className="text-xs font-bold">Carrinho</label>
                             {
                                 cart.products
                                     .map((product) => (
                                         <li key={`cart-${product.id}`}>
-                                            <div className="flex flex row gap-1.5">
-                                                <div className="bg-red-600 h-8 w-8 rounded-md overflow-hidden"></div>
-                                                <div className="flex-1">
-                                                    <div className="flex flex-row items-center justify-between">
-                                                        <div>
-                                                            <div className="text-xs font-bold">{product.name}</div>
-                                                            <div className="text-[8px] text-slate-500">
-                                                                {
-                                                                    CATEGORIES
-                                                                        .find(ct => ct.id === product.categoryID)?.name || "Não identificada"
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                        <button className="bg-red-200 text-red-600 h-5 w-5 rounded-md flex items-center justify-center">
-                                                            <IoTrash size={12} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="flex flex-row items-center justify-between">
-                                                        <div>
-                                                            <div className="flex flex-row items-center">
-                                                                <button className="flex items-center justify-center w-5 h-5 rounded-l-md bg-[#012E40] text-white cursor-pointer hover:text-[#00BC99]">
-                                                                    <FaMinus size={6} />
-                                                                </button>
-                                                                <div className="border-y border-slate-500 text-slate-600 w-8 h-5 flex items-center justify-center text-[10px]">{product.amount}</div>
-                                                                <button className="flex items-center justify-center w-5 h-5 rounded-r-md bg-[#012E40] text-white cursor-pointer hover:text-[#00BC99]">
-                                                                    <FaPlus size={6} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            {product.amount * product.price}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <CartItem data={product} add={add} remove={remove} />
                                         </li>
                                     ))
                             }
                         </ul>
                     </div>
 
-                    <div className="bg-[#012E40] overflow-hidden h-15 w-full text-white">
-
+                    <div className="bg-[#012E40] overflow-hidden h-15 w-full text-white p-2">
+                        <div className="text-right text-lg font-bold flex flex-row justify-end gap-2">
+                            <div className="text-[10px]">R$</div>
+                            {cart.total.toLocaleString("pt-br", {
+                                minimumFractionDigits: 2,
+                               maximumFractionDigits: 2
+                            })}
+                        </div>
+                        {(cart.total > 0 || cart.products.length > 0) && (
+                            <Link href={"/checkout"} className="bg-[#00BC99] p-2 rounded-lg text-[10px]">Finalizar</Link>
+                        )}
                     </div>
                 </div>
             </section>
