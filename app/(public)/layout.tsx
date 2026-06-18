@@ -9,7 +9,9 @@ export default function Layout({ children }: Readonly<IProps>) {
     return (
         <>
             <Header/>
+            <main className="p-2 overflow-auto">
             { children }
+            </main>
         </>
     )
 }

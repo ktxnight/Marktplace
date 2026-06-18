@@ -3,35 +3,16 @@
 import { createContext, ReactNode, useContext, useState } from "react"
 
 interface ICartContext {
-    cart: ICart
+    cart: ICart,
     add: (product: IProductCart) => void,
     remove: (product: IProductCart) => void
 }
 
-const CartContext = createContext<ICartContext>(null!)
+const CartContext = createContext<ICartContext>(null!);
 
 export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
     const [cart, setCart] = useState<ICart>({
-        products: [
-            {
-                id: 0,
-                name: "desktops",
-                categoryID: 1,
-                description: "desktops De Boa Qualidade",
-                sellerID: 1,
-                amount: 0,
-                price: 25,
-            },
-            {
-                id: 1,
-                name: "Mouses",
-                categoryID: 1,
-                description: "Mouse de Qualidade",
-                sellerID: 1,
-                amount: 0,
-                price: 50,
-            }
-        ], total: 0
+        products: [], total: 0
     })
 
     const add = (product: IProductCart) => {
@@ -72,7 +53,13 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
 
         if (oldProduct) {
             if (product.amount >= oldProduct.amount) {
-                // Quantidade maior
+                // Quantidade maior ou igual
+                const products = cart.products.filter(prd => prd.id !== oldProduct.id)
+                const total = products.reduce((prev, curr) => prev + (curr.amount * curr.price), 0)
+                setCart({
+                    products,
+                    total
+                })
             } else {
                 // Quantidade menor
                 const products = cart.products.map(prd => {
@@ -102,6 +89,6 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
 
 export function useCart() {
     const context = useContext(CartContext)
-    if (!context) throw new Error("O 'useCart' deve ser utilizado dentro de 'CartProvider'")
+    if (!context) throw new Error("O 'useCart' deve ser utilizado dentro do 'CartProvider'")
     return context
 }
